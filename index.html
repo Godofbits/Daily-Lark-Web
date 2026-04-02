@@ -12,13 +12,13 @@
         }
 
         body {
-            background: #0a0a0a;
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: Georgia, serif;
-            color: #e0e0e0;
+            font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+            color: #1a1a1a;
         }
 
         .container {
@@ -26,21 +26,42 @@
             padding: 2rem;
         }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+        .logo {
+            width: 200px;
+            height: auto;
+            margin-bottom: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
-        p {
-            font-size: 1.2rem;
-            opacity: 0.6;
+        .store-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .store-badges a img {
+            height: 54px;
+            transition: opacity 0.2s;
+        }
+
+        .store-badges a:hover img {
+            opacity: 0.7;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Daily Lark</h1>
-        <p>Coming Soon</p>
+        <img src="logo.png" alt="Daily Lark" class="logo">
+        <div class="store-badges">
+            <a href="https://apps.apple.com/app/id6761080561" aria-label="Download on the App Store">
+                <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
+            </a>
+            <a href="#" aria-label="Get it on Google Play">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play">
+            </a>
+        </div>
     </div>
 </body>
 </html>
