@@ -423,7 +423,9 @@
                     document.querySelector('.larks-heading').textContent = '... recent larks ...';
                 }
                 const cards = document.getElementById('lark-cards');
-                for (const p of data.puzzles) cards.appendChild(renderCard(p));
+                // Daily first, then the Lark
+                const ordered = [...data.puzzles].sort((a, b) => b.slot - a.slot);
+                for (const p of ordered) cards.appendChild(renderCard(p));
                 document.getElementById('larks').hidden = false;
             } catch (e) {
                 // Leave the section hidden if the data can't be loaded
