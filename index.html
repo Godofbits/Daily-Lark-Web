@@ -11,6 +11,20 @@
             box-sizing: border-box;
         }
 
+        [hidden] {
+            display: none !important;
+        }
+
+        :root {
+            /* Colors from the app's default ColorTheme (GameColors.swift) */
+            --correct: #008c00;
+            --pun-solved: #1a2666;
+            --pun-border: #00ff33;
+            --joke-title: #2e5cb8;
+            --idiom-title: #3373d9;
+            --tile-border: #d1d1d6;
+        }
+
         body {
             background: #ffffff;
             min-height: 100vh;
@@ -23,7 +37,9 @@
 
         .container {
             text-align: center;
-            padding: 2rem;
+            padding: 2rem 1rem;
+            width: 100%;
+            max-width: 900px;
         }
 
         .logo {
@@ -58,6 +74,213 @@
         .store-badges a:hover img {
             opacity: 0.7;
         }
+
+        /* ---------- Yesterday's larks ---------- */
+
+        .larks {
+            margin-top: 4rem;
+        }
+
+        .larks-heading {
+            margin-bottom: 0.4rem;
+        }
+
+        .larks-date {
+            font-size: clamp(0.7rem, 2vw, 0.85rem);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.5;
+            margin-bottom: 2rem;
+        }
+
+        .lark-cards {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .lark-card {
+            --gap: 2px;
+            flex: 0 1 380px;
+            padding: 1.5rem 1.25rem;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .card-labels {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Word label: letter boxes, like LARK / DAILY on the app's card */
+        .word-label {
+            display: flex;
+            gap: 2px;
+        }
+
+        .word-label span {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--joke-title);
+            color: #fff;
+            font: 700 14px ui-monospace, 'SF Mono', Menlo, monospace;
+            border-radius: 1px;
+        }
+
+        .word-label.size span {
+            background: #1a1a1a;
+        }
+
+        .type-label {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        .setup {
+            font-family: 'New York', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+            font-weight: 900;
+            font-size: clamp(1.05rem, 3.5vw, 1.25rem);
+            line-height: 1.3;
+            color: var(--pun-solved);
+        }
+
+        .punchline {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+        }
+
+        .token {
+            display: flex;
+            gap: 1.5px;
+        }
+
+        .token span {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font: 700 14px ui-monospace, 'SF Mono', Menlo, monospace;
+            border-radius: 2px;
+        }
+
+        .token.content span {
+            background: var(--pun-solved);
+            color: #fff;
+            border: 1px solid var(--pun-border);
+        }
+
+        .token.filler span {
+            color: #1a1a1a;
+            opacity: 0.55;
+            width: auto;
+            padding: 0 1px;
+        }
+
+        /* Solved grid */
+        .grid-wrap {
+            position: relative;
+            margin-top: 0.25rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: var(--gap);
+        }
+
+        .cell {
+            width: var(--tile);
+            height: var(--tile);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 1px;
+            background: var(--correct);
+            color: #fff;
+            border: 0.5px solid var(--tile-border);
+            font: 700 calc(var(--tile) * 0.62) ui-monospace, 'SF Mono', Menlo, monospace;
+        }
+
+        .cell.pun {
+            background: var(--pun-solved);
+        }
+
+        .cell.black {
+            background: #000;
+            border-color: #000;
+        }
+
+        .cell .num {
+            position: absolute;
+            top: 1px;
+            left: 2px;
+            font: 400 calc(var(--tile) * 0.22) -apple-system, 'Helvetica Neue', Arial, sans-serif;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .pun-outline {
+            position: absolute;
+            border: 1px solid var(--pun-border);
+            pointer-events: none;
+        }
+
+        .explanation {
+            font-size: 0.8rem;
+            line-height: 1.45;
+            opacity: 0.6;
+            font-style: italic;
+            max-width: 32ch;
+        }
+
+        /* ---------- Visitor counter ---------- */
+
+        .counter {
+            margin-top: 4rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .counter-digits {
+            display: flex;
+            gap: 3px;
+        }
+
+        .counter-digits span {
+            width: clamp(22px, 6vw, 30px);
+            height: clamp(30px, 8vw, 40px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            color: #fff;
+            font: 700 clamp(1rem, 4vw, 1.35rem) ui-monospace, 'SF Mono', Menlo, monospace;
+            border-radius: 3px;
+        }
+
+        .counter-label {
+            font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -69,8 +292,123 @@
                 <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
             </a>
         </div>
-        <p class="tagline" style="margin-top: 5.5rem; margin-bottom: 0.5rem; font-style: normal; font-size: clamp(0.7rem, 2vw, 0.85rem); opacity: 0.5;">Daily-Lark.com&trade; &copy; 2026</p>
+
+        <section class="larks" id="larks" hidden>
+            <p class="tagline larks-heading">... yesterday's larks ...</p>
+            <p class="larks-date" id="larks-date"></p>
+            <div class="lark-cards" id="lark-cards"></div>
+        </section>
+
+        <div class="counter" id="counter" hidden>
+            <div class="counter-digits" id="counter-digits"></div>
+            <p class="counter-label">visitors</p>
+        </div>
+
+        <p class="tagline" style="margin-top: 4rem; margin-bottom: 0.5rem; font-style: normal; font-size: clamp(0.7rem, 2vw, 0.85rem); opacity: 0.5;">Daily-Lark.com&trade; &copy; 2026</p>
         <p style="font-size: clamp(0.65rem, 1.5vw, 0.75rem); opacity: 0.4;"><a href="/privacy" style="color: #1a1a1a; text-decoration: none;">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="/terms" style="color: #1a1a1a; text-decoration: none;">Terms of Service</a></p>
     </div>
+
+    <script>
+        function el(tag, className, text) {
+            const node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text != null) node.textContent = text;
+            return node;
+        }
+
+        function letterBoxes(text, className) {
+            const wrap = el('div', className);
+            for (const ch of text) wrap.appendChild(el('span', null, ch));
+            return wrap;
+        }
+
+        function renderGrid(p) {
+            const wrap = el('div', 'grid-wrap');
+            const grid = el('div', 'grid');
+            grid.style.gridTemplateColumns = `repeat(${p.cols}, var(--tile))`;
+
+            for (const row of p.cells) {
+                for (const cell of row) {
+                    if (!cell) {
+                        grid.appendChild(el('div', 'cell black'));
+                        continue;
+                    }
+                    const c = el('div', cell.j ? 'cell pun' : 'cell', cell.l);
+                    if (cell.n) c.appendChild(el('span', 'num', cell.n));
+                    grid.appendChild(c);
+                }
+            }
+            wrap.appendChild(grid);
+
+            // One neon outline per pun word, like PlayerPuzzlePreview
+            for (const w of p.jokeWords) {
+                const o = el('div', 'pun-outline');
+                const step = 'calc(var(--tile) + var(--gap))';
+                const span = `calc(${w.len} * (var(--tile) + var(--gap)) - var(--gap))`;
+                o.style.left = `calc(${w.col} * ${step})`;
+                o.style.top = `calc(${w.row} * ${step})`;
+                o.style.width = w.dir === 'across' ? span : 'var(--tile)';
+                o.style.height = w.dir === 'across' ? 'var(--tile)' : span;
+                wrap.appendChild(o);
+            }
+            return wrap;
+        }
+
+        function renderCard(p) {
+            const card = el('article', 'lark-card');
+            // Scale tiles so wide grids still fit a phone screen
+            card.style.setProperty('--tile', `clamp(24px, calc((100vw - 100px) / ${p.cols}), 44px)`);
+
+            const labels = el('div', 'card-labels');
+            labels.appendChild(letterBoxes(p.label.toUpperCase(), 'word-label'));
+            labels.appendChild(el('span', 'type-label', `${p.typeEmoji} ${p.typeLabel}`));
+            labels.appendChild(letterBoxes(`${p.rows}X${p.cols}`, 'word-label size'));
+            card.appendChild(labels);
+
+            card.appendChild(el('p', 'setup', p.setup));
+
+            const punch = el('div', 'punchline');
+            punch.setAttribute('aria-label', p.punchline);
+            for (const t of p.tokens) {
+                punch.appendChild(letterBoxes(t.t, t.c ? 'token content' : 'token filler'));
+            }
+            card.appendChild(punch);
+
+            card.appendChild(renderGrid(p));
+            if (p.explanation) card.appendChild(el('p', 'explanation', p.explanation));
+            return card;
+        }
+
+        async function loadLarks() {
+            try {
+                const res = await fetch('larks.json', { cache: 'no-cache' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const [y, m, d] = data.date.split('-').map(Number);
+                document.getElementById('larks-date').textContent =
+                    new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+                // Only call them "yesterday's" if the daily export is current (US Central)
+                const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+                const [ty, tm, td] = today.split('-').map(Number);
+                const yesterday = new Date(Date.UTC(ty, tm - 1, td - 1)).toISOString().slice(0, 10);
+                if (data.date !== yesterday) {
+                    document.querySelector('.larks-heading').textContent = '... recent larks ...';
+                }
+                const cards = document.getElementById('lark-cards');
+                for (const p of data.puzzles) cards.appendChild(renderCard(p));
+                document.getElementById('larks').hidden = false;
+            } catch (e) {
+                // Leave the section hidden if the data can't be loaded
+            }
+        }
+
+        function showVisitorCount(count) {
+            const digits = document.getElementById('counter-digits');
+            digits.replaceChildren(...String(count).padStart(6, '0').split('').map(ch => el('span', null, ch)));
+            document.getElementById('counter').hidden = false;
+        }
+
+        loadLarks();
+    </script>
 </body>
 </html>
