@@ -35,7 +35,7 @@
         /* Header sits in the top-left corner; the larks fill the space beside it */
         .page {
             display: grid;
-            grid-template-columns: auto 1fr;
+            grid-template-columns: auto minmax(0, 1fr);
             align-items: start;
             gap: 1rem 2rem;
             padding: 1.5rem 1rem 2rem;
@@ -61,7 +61,11 @@
 
         @media (max-width: 800px) {
             .page {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .puzzle-card {
+                padding: 1.25rem 0.75rem;
             }
         }
 
@@ -275,6 +279,118 @@
             max-width: 32ch;
         }
 
+        /* ---------- Today's puzzles (blank grid + clues) ---------- */
+
+        .today {
+            margin-bottom: 4rem;
+        }
+
+        .today-cards {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .puzzle-card {
+            --gap: 2px;
+            width: 100%;
+            max-width: 820px;
+            padding: 1.5rem 1.25rem;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .puzzle-card .card-labels {
+            max-width: 520px;
+        }
+
+        .puzzle-body {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 1.75rem;
+            flex-wrap: wrap;
+            margin-top: 0.25rem;
+        }
+
+        .cell.blank {
+            background: #fff;
+            color: #1a1a1a;
+        }
+
+        .cell.blank.pun {
+            background: rgba(0, 140, 0, 0.12);
+        }
+
+        .cell.blank .num {
+            color: #6e6e73;
+        }
+
+        .token.hint span {
+            background: rgba(0, 140, 0, 0.12);
+            border: 1px solid var(--pun-border);
+        }
+
+        .token.star span {
+            font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 18px;
+        }
+
+        .clues {
+            flex: 1 1 260px;
+            max-width: 420px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+            gap: 1.25rem;
+            text-align: left;
+        }
+
+        .clues h3 {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding-bottom: 0.35rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .clues ol {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .clues li {
+            display: grid;
+            grid-template-columns: 1.75rem 1fr;
+            font-size: 0.85rem;
+            line-height: 1.35;
+        }
+
+        .clues li b {
+            font-weight: 700;
+        }
+
+        .clues li.pun span {
+            color: var(--correct);
+            font-style: italic;
+        }
+
+        .today-note {
+            margin-top: 1.5rem;
+            font-size: clamp(0.75rem, 2vw, 0.85rem);
+            opacity: 0.6;
+        }
+
         /* ---------- Visitor counter ---------- */
 
         .counter {
@@ -324,6 +440,8 @@
 
     <div class="container">
 
+        <section class="today" id="today" hidden></section>
+
         <section class="larks" id="larks" hidden></section>
 
         <div class="counter" id="counter" hidden>
@@ -361,7 +479,8 @@
                         grid.appendChild(el('div', 'cell black'));
                         continue;
                     }
-                    const c = el('div', cell.j ? 'cell pun' : 'cell', cell.l);
+                    const cls = (cell.l ? 'cell' : 'cell blank') + (cell.j ? ' pun' : '');
+                    const c = el('div', cls, cell.l);
                     if (cell.n) c.appendChild(el('span', 'num', cell.n));
                     grid.appendChild(c);
                 }
@@ -407,11 +526,81 @@
             return card;
         }
 
+        function renderClues(p) {
+            const clues = el('div', 'clues');
+            for (const dir of ['across', 'down']) {
+                const col = el('div');
+                col.appendChild(el('h3', null, dir));
+                const list = el('ol');
+                for (const c of p.clues[dir]) {
+                    const li = el('li', c.pun ? 'pun' : null);
+                    li.appendChild(el('b', null, c.n));
+                    li.appendChild(el('span', null, c.clue ?? `Punchline word (${c.len}) · solve the crossings`));
+                    list.appendChild(li);
+                }
+                col.appendChild(list);
+                clues.appendChild(col);
+            }
+            return clues;
+        }
+
+        function renderPuzzleCard(p) {
+            const card = el('article', 'puzzle-card');
+            card.style.setProperty('--tile', `clamp(24px, calc((100vw - 100px) / ${p.cols}), 44px)`);
+
+            const labels = el('div', 'card-labels');
+            labels.appendChild(letterBoxes(p.label.toUpperCase(), 'word-label'));
+            labels.appendChild(el('span', 'type-label', `${p.typeEmoji} ${p.typeLabel}`));
+            labels.appendChild(letterBoxes(`${p.rows}X${p.cols}`, 'word-label size'));
+            card.appendChild(labels);
+
+            card.appendChild(el('p', 'setup', p.setup));
+
+            // Blank punchline: boxes for pun words, ✱ for filler words (as in the app)
+            const punch = el('div', 'punchline');
+            for (const t of p.tokens) {
+                punch.appendChild(t.filler ? letterBoxes('✱', 'token star') : letterBoxes(' '.repeat(t.len), 'token hint'));
+            }
+            card.appendChild(punch);
+
+            const body = el('div', 'puzzle-body');
+            body.appendChild(renderGrid(p));
+            body.appendChild(renderClues(p));
+            card.appendChild(body);
+            return card;
+        }
+
+        function chicagoDate(offsetDays) {
+            const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+            const [y, m, d] = today.split('-').map(Number);
+            return new Date(Date.UTC(y, m - 1, d + offsetDays)).toISOString().slice(0, 10);
+        }
+
+        function longDate(iso) {
+            const [y, m, d] = iso.split('-').map(Number);
+            return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        }
+
+        function renderToday(today) {
+            // Only show "today" while it really is today in US Central
+            if (!today || today.date !== chicagoDate(0)) return;
+            const section = document.getElementById('today');
+            section.appendChild(el('p', 'tagline larks-heading', "... today's larks ..."));
+            section.appendChild(el('p', 'larks-date', longDate(today.date)));
+            const cards = el('div', 'today-cards');
+            const ordered = [...today.puzzles].sort((a, b) => b.slot - a.slot);
+            for (const p of ordered) cards.appendChild(renderPuzzleCard(p));
+            section.appendChild(cards);
+            section.appendChild(el('p', 'today-note', 'Solve them in the app. The answers show up here tomorrow.'));
+            section.hidden = false;
+        }
+
         async function loadLarks() {
             try {
                 const res = await fetch('larks.json', { cache: 'no-cache' });
                 if (!res.ok) return;
                 const data = await res.json();
+                renderToday(data.today);
 
                 // Only say "yesterday" if the daily export is current (US Central)
                 const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });

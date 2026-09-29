@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Export the free-card larks for yesterday and the day before (America/Chicago) to larks.json.
+"""Export the free-card larks (America/Chicago) to larks.json.
 
-Only past days are ever exported, so upcoming puzzles never reach the public site.
+- "today": today's puzzles as blank grids with clues. No letters, answers or
+  punchline text are exported, so the solution never reaches the public site.
+- "days": solved puzzles for yesterday and the day before.
+Nothing after today is ever exported.
 Usage: export_larks.py <path/to/puzzles_prod.db> [out.json] [--date YYYY-MM-DD]
---date sets the most recent day to export (default: yesterday in Chicago).
+--date sets the most recent solved day (default: yesterday in Chicago).
 """
 import json
 import sqlite3
@@ -28,7 +31,7 @@ def word_cells(w):
     return [(r + i, c) for i in range(n)]
 
 
-def export_puzzle(row):
+def export_puzzle(row, solved=True):
     grid = json.loads(row["grid_data"])
     words = json.loads(row["words_data"])
     joke_ids = set(json.loads(row["joke_word_ids"] or "[]"))
@@ -48,11 +51,10 @@ def export_puzzle(row):
             if cell["type"] != "letter":
                 out_row.append(None)
                 continue
-            out_row.append({
-                "l": cell["value"],
-                "n": numbers.get((r, c)),
-                "j": (r, c) in joke_cells,
-            })
+            out = {"n": numbers.get((r, c)), "j": (r, c) in joke_cells}
+            if solved:
+                out["l"] = cell["value"]
+            out_row.append(out)
         cells.append(out_row)
 
     # Same tokenising rule as Puzzle.punchlineTokens() in the app.
@@ -65,7 +67,21 @@ def export_puzzle(row):
         tokens.append({"t": clean, "c": content})
 
     emoji, type_label = TYPE_LABELS.get(row["joke_type"], ("😄", "Pun"))
-    return {
+    if not solved:
+        # Word lengths only; filler words become ✱ like the in-game card
+        tokens = [{"len": len(t["t"])} if t["c"] else {"filler": True} for t in tokens]
+
+    clues = {"across": [], "down": []}
+    for w in sorted(words, key=lambda w: w["number"]):
+        clues[w["direction"]].append({
+            "n": w["number"],
+            # Pun words have no clue: they're solved through their crossings
+            "clue": (w.get("clue") or {}).get("clueText"),
+            "pun": w["word"]["id"] in joke_ids,
+            "len": len(w["word"]["word"]),
+        })
+
+    puzzle = {
         "slot": row["slot"],
         "label": SLOT_LABELS.get(row["slot"], "Lark"),
         "type": row["joke_type"],
@@ -83,7 +99,23 @@ def export_puzzle(row):
              "dir": w["direction"], "len": len(w["word"]["word"])}
             for w in joke_words
         ],
+        "clues": clues,
     }
+    if not solved:
+        for key in ("punchline", "explanation"):
+            del puzzle[key]
+    return puzzle
+
+
+def load_pack(db, day, solved):
+    rows = db.execute(
+        """SELECT p.* FROM puzzles p JOIN daily_packs d ON p.pack_id = d.id
+           WHERE d.date = ? AND d.pack_type = 'free' ORDER BY p.slot""",
+        (day,),
+    ).fetchall()
+    if not rows:
+        sys.exit(f"No free pack found for {day}")
+    return {"date": day, "puzzles": [export_puzzle(r, solved) for r in rows]}
 
 
 def main():
@@ -101,22 +133,14 @@ def main():
     db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     db.row_factory = sqlite3.Row
     newest = datetime.fromisoformat(date).date()
-    days = []
-    for back in range(DAYS):
-        day = (newest - timedelta(days=back)).isoformat()
-        rows = db.execute(
-            """SELECT p.* FROM puzzles p JOIN daily_packs d ON p.pack_id = d.id
-               WHERE d.date = ? AND d.pack_type = 'free' ORDER BY p.slot""",
-            (day,),
-        ).fetchall()
-        if not rows:
-            sys.exit(f"No free pack found for {day}")
-        days.append({"date": day, "puzzles": [export_puzzle(r) for r in rows]})
+    today = load_pack(db, (newest + timedelta(days=1)).isoformat(), solved=False)
+    days = [load_pack(db, (newest - timedelta(days=back)).isoformat(), solved=True)
+            for back in range(DAYS)]
 
     with open(out_path, "w") as f:
-        json.dump({"days": days}, f, ensure_ascii=False, separators=(",", ":"))
+        json.dump({"today": today, "days": days}, f, ensure_ascii=False, separators=(",", ":"))
         f.write("\n")
-    print(f"Exported {', '.join(d['date'] for d in days)} -> {out_path}")
+    print(f"Exported today {today['date']} (blank) and {', '.join(d['date'] for d in days)} -> {out_path}")
 
 
 if __name__ == "__main__":
