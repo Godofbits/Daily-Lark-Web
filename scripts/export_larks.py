@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Export yesterday's free-card larks (America/Chicago) from puzzles_prod.db to larks.json.
+"""Export the free-card larks for yesterday and the day before (America/Chicago) to larks.json.
 
 Only past days are ever exported, so upcoming puzzles never reach the public site.
 Usage: export_larks.py <path/to/puzzles_prod.db> [out.json] [--date YYYY-MM-DD]
+--date sets the most recent day to export (default: yesterday in Chicago).
 """
 import json
 import sqlite3
@@ -10,6 +11,7 @@ import sys
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+DAYS = 2  # yesterday and the day before
 SLOT_LABELS = {0: "Lark", 1: "Daily", 2: "Lingo"}
 TYPE_LABELS = {"joke": ("😄", "Pun"), "idiom": ("💬", "Word Play")}
 
@@ -98,19 +100,23 @@ def main():
 
     db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     db.row_factory = sqlite3.Row
-    rows = db.execute(
-        """SELECT p.* FROM puzzles p JOIN daily_packs d ON p.pack_id = d.id
-           WHERE d.date = ? AND d.pack_type = 'free' ORDER BY p.slot""",
-        (date,),
-    ).fetchall()
-    if not rows:
-        sys.exit(f"No free pack found for {date}")
+    newest = datetime.fromisoformat(date).date()
+    days = []
+    for back in range(DAYS):
+        day = (newest - timedelta(days=back)).isoformat()
+        rows = db.execute(
+            """SELECT p.* FROM puzzles p JOIN daily_packs d ON p.pack_id = d.id
+               WHERE d.date = ? AND d.pack_type = 'free' ORDER BY p.slot""",
+            (day,),
+        ).fetchall()
+        if not rows:
+            sys.exit(f"No free pack found for {day}")
+        days.append({"date": day, "puzzles": [export_puzzle(r) for r in rows]})
 
-    data = {"date": date, "puzzles": [export_puzzle(r) for r in rows]}
     with open(out_path, "w") as f:
-        json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+        json.dump({"days": days}, f, ensure_ascii=False, separators=(",", ":"))
         f.write("\n")
-    print(f"Exported {len(rows)} larks for {date} -> {out_path}")
+    print(f"Exported {', '.join(d['date'] for d in days)} -> {out_path}")
 
 
 if __name__ == "__main__":

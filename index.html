@@ -104,6 +104,10 @@
             margin-top: 0;
         }
 
+        .larks-day + .larks-day {
+            margin-top: 3.5rem;
+        }
+
         .larks-heading {
             margin-bottom: 0.4rem;
         }
@@ -320,11 +324,7 @@
 
     <div class="container">
 
-        <section class="larks" id="larks" hidden>
-            <p class="tagline larks-heading">... yesterday's larks ...</p>
-            <p class="larks-date" id="larks-date"></p>
-            <div class="lark-cards" id="lark-cards"></div>
-        </section>
+        <section class="larks" id="larks" hidden></section>
 
         <div class="counter" id="counter" hidden>
             <div class="counter-digits" id="counter-digits"></div>
@@ -412,20 +412,30 @@
                 const res = await fetch('larks.json', { cache: 'no-cache' });
                 if (!res.ok) return;
                 const data = await res.json();
-                const [y, m, d] = data.date.split('-').map(Number);
-                document.getElementById('larks-date').textContent =
-                    new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-                // Only call them "yesterday's" if the daily export is current (US Central)
+
+                // Only say "yesterday" if the daily export is current (US Central)
                 const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
                 const [ty, tm, td] = today.split('-').map(Number);
                 const yesterday = new Date(Date.UTC(ty, tm - 1, td - 1)).toISOString().slice(0, 10);
-                if (data.date !== yesterday) {
-                    document.querySelector('.larks-heading').textContent = '... recent larks ...';
-                }
-                const cards = document.getElementById('lark-cards');
-                // Daily first, then the Lark
-                const ordered = [...data.puzzles].sort((a, b) => b.slot - a.slot);
-                for (const p of ordered) cards.appendChild(renderCard(p));
+                const current = data.days[0].date === yesterday;
+                const headings = current
+                    ? ["... yesterday's larks ...", '... the day before ...']
+                    : ['... recent larks ...', ''];
+
+                const section = document.getElementById('larks');
+                data.days.forEach((day, i) => {
+                    const block = el('div', 'larks-day');
+                    if (headings[i]) block.appendChild(el('p', 'tagline larks-heading', headings[i]));
+                    const [y, m, d] = day.date.split('-').map(Number);
+                    block.appendChild(el('p', 'larks-date',
+                        new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })));
+                    const cards = el('div', 'lark-cards');
+                    // Daily first, then the Lark
+                    const ordered = [...day.puzzles].sort((a, b) => b.slot - a.slot);
+                    for (const p of ordered) cards.appendChild(renderCard(p));
+                    block.appendChild(cards);
+                    section.appendChild(block);
+                });
                 document.getElementById('larks').hidden = false;
             } catch (e) {
                 // Leave the section hidden if the data can't be loaded
