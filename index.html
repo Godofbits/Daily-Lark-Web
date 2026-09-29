@@ -28,25 +28,48 @@
         body {
             background: #ffffff;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
             color: #1a1a1a;
         }
 
+        /* Header sits in the top-left corner; the larks fill the space beside it */
+        .page {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: start;
+            gap: 1rem 2rem;
+            padding: 1.5rem 1rem 2rem;
+        }
+
+        .site-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .site-header .tagline {
+            margin-bottom: 1rem;
+        }
+
         .container {
             text-align: center;
-            padding: 2rem 1rem;
             width: 100%;
             max-width: 900px;
+            justify-self: center;
+        }
+
+        @media (max-width: 800px) {
+            .page {
+                grid-template-columns: 1fr;
+            }
         }
 
         .logo {
-            width: min(400px, 70vw);
+            width: min(267px, 47vw);
             height: auto;
-            margin-bottom: 1.5rem;
-            border-radius: 24px;
+            margin-bottom: 1rem;
+            border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
@@ -78,7 +101,7 @@
         /* ---------- Yesterday's larks ---------- */
 
         .larks {
-            margin-top: 4rem;
+            margin-top: 0;
         }
 
         .larks-heading {
@@ -284,7 +307,8 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="page">
+    <header class="site-header">
         <img src="logo.png" alt="Daily Lark" class="logo">
         <p class="tagline">... now available on the App Store ...</p>
         <div class="store-badges">
@@ -292,6 +316,9 @@
                 <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
             </a>
         </div>
+    </header>
+
+    <div class="container">
 
         <section class="larks" id="larks" hidden>
             <p class="tagline larks-heading">... yesterday's larks ...</p>
@@ -306,6 +333,7 @@
 
         <p class="tagline" style="margin-top: 4rem; margin-bottom: 0.5rem; font-style: normal; font-size: clamp(0.7rem, 2vw, 0.85rem); opacity: 0.5;">Daily-Lark.com&trade; &copy; 2026</p>
         <p style="font-size: clamp(0.65rem, 1.5vw, 0.75rem); opacity: 0.4;"><a href="/privacy" style="color: #1a1a1a; text-decoration: none;">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="/terms" style="color: #1a1a1a; text-decoration: none;">Terms of Service</a></p>
+    </div>
     </div>
 
     <script>
